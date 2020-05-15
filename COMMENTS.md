@@ -22,8 +22,6 @@ Usage of ./slcsp:
     	File containing all the health plans (default "testdata/plans.csv")
   -slcspFile string
     	File containing zipCodes to compute SLCSP information (default "testdata/slcsp.csv")
-  -targetValue string
-    	Sets the level whose second lowest cost plan will be returned. (default "Silver")
   -zipCodeFile string
     	File containing a mapping of ZIP code to county/counties & rate area(s) (default "testdata/zips.csv")
 ```

@@ -24,6 +24,7 @@ type priceKey struct {
 	entities.Level
 }
 
+// Parses through rate and zipCode information to determine the second lowest Silver-level cost plan
 func main() {
 	planFile := flag.String("planFile", "testdata/plans.csv",
 		"File containing all the health plans")
@@ -31,14 +32,9 @@ func main() {
 		"File containing a mapping of ZIP code to county/counties & rate area(s)")
 	slcspFile := flag.String("slcspFile", "testdata/slcsp.csv",
 		"File containing zipCodes to compute SLCSP information")
-	targetLevelStr := flag.String("targetValue", string(entities.Silver),
-		"Sets the level whose second lowest cost plan will be returned.")
 	flag.Parse()
 
-	targetLevel, err := entities.ParseLevel(*targetLevelStr)
-	if err != nil {
-		log.Fatalf("Failed to parse targetLevel %s", err.Error())
-	}
+	targetLevel := entities.Silver
 
 	priceMap, err := getPriceMap(*planFile)
 	if err != nil {
