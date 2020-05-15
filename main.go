@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -16,26 +17,45 @@ const (
 	NUM_ZIPCODE_TEST_FIELDS = 2
 )
 
+const OUTPUT_HEADER = "zipcode,rate"
+
 type priceKey struct {
 	entities.RateArea
 	entities.Level
 }
 
 func main() {
-	priceMap, err := getPriceMap("testdata/plans.csv")
+	planFile := flag.String("planFile", "testdata/plans.csv",
+		"File containing all the health plans")
+	zipCodeFile := flag.String("zipCodeFile", "testdata/zips.csv",
+		"File containing a mapping of ZIP code to county/counties & rate area(s)")
+	slcspFile := flag.String("slcspFile", "testdata/slcsp.csv",
+		"File containing zipCodes to compute SLCSP information")
+	targetLevelStr := flag.String("targetValue", string(entities.Silver),
+		"Sets the level whose second lowest cost plan will be returned.")
+	flag.Parse()
+
+	targetLevel, err := entities.ParseLevel(*targetLevelStr)
+	if err != nil {
+		log.Fatalf("Failed to parse targetLevel %s", err.Error())
+	}
+
+	priceMap, err := getPriceMap(*planFile)
 	if err != nil {
 		log.Fatalf("Failed to get price map %s", err.Error())
 	}
 
-	zipCodeMap, err := getZipCodeMap("testdata/zips.csv")
+	zipCodeMap, err := getZipCodeMap(*zipCodeFile)
 	if err != nil {
 		log.Fatalf("Failed to get zipCode map %s", err.Error())
 	}
 
-	zipCodesUnderTest, err := getZipCodesToTest("testdata/slcsp.csv")
+	zipCodesUnderTest, err := getZipCodesToTest(*slcspFile)
 	if err != nil {
 		log.Fatalf("Failed to get zipCodes under test %s", err.Error())
 	}
+
+	fmt.Println(OUTPUT_HEADER)
 
 	OuterLoop:
 	for _, zipCode := range zipCodesUnderTest {
@@ -47,7 +67,7 @@ func main() {
 		for rateArea := range zipCodeMap[zipCode] {
 			key := priceKey{
 				rateArea,
-				entities.Silver,
+				targetLevel,
 			}
 			if len(priceMap[key]) <= 1 {
 				fmt.Printf("%s,\n", zipCode)
