@@ -53,31 +53,36 @@ func main() {
 
 	fmt.Println(OUTPUT_HEADER)
 
-	OuterLoop:
 	for _, zipCode := range zipCodesUnderTest {
+		var rateAreas []entities.RateArea
+		for rateArea := range zipCodeMap[zipCode] {
+			rateAreas = append(rateAreas, rateArea)
+		}
+
 		// Cannot determine price if zipCode has more than one rateArea
-		if len(zipCodeMap[zipCode]) != 1 {
+		if len(rateAreas) != 1 {
 			fmt.Printf("%s,\n", zipCode)
 			continue
 		}
-		for rateArea := range zipCodeMap[zipCode] {
-			key := priceKey{
-				rateArea,
-				targetLevel,
-			}
-			if len(priceMap[key]) <= 1 {
-				fmt.Printf("%s,\n", zipCode)
-				continue OuterLoop
-			}
 
-			var rates entities.Rates
-			for rate := range priceMap[key] {
-				rates = append(rates, rate)
-			}
-
-			sort.Sort(rates)
-			fmt.Printf("%s,%.2f\n", zipCode, rates[1])
+		key := priceKey{
+			rateAreas[0],
+			targetLevel,
 		}
+
+		// Cannot determine second lowest price if there is only one price available
+		if len(priceMap[key]) <= 1 {
+			fmt.Printf("%s,\n", zipCode)
+			continue
+		}
+
+		var rates entities.Rates
+		for rate := range priceMap[key] {
+			rates = append(rates, rate)
+		}
+
+		sort.Sort(rates)
+		fmt.Printf("%s,%.2f\n", zipCode, rates[1])
 	}
 }
 
